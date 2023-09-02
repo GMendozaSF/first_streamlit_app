@@ -1,4 +1,5 @@
 import streamlit, pandas, requests, snowflake.connector
+from urllib.error import URLError
 
 streamlit.title('My Parents New Healthy Diner')
 streamlit.header('Breakfast Favorites')
@@ -23,22 +24,33 @@ fruits_to_show = my_fruit_list.loc[fruits_selected]
 # Display the table on the page.
 streamlit.dataframe(fruits_to_show)
 
-#New section to display the fruityvice api response and a new header
+###Old code that would display the fruityvice API response
+#streamlit.header('Fruityvice Fruit Advice!')
+##Adding a text entry box and sending the input to the Fruityvice API
+#fruit_choice = streamlit.text_input('What fruit would you like information about?')
+##pulling the data from the API
+#fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + fruit_choice)
+##normalizes the json formatted data and then stores it in variable 
+#fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
+##Creates a new table for the normalized data to be displayed
+#streamlit.dataframe(fruityvice_normalized)
+
+#New section/code to display fruityvice API response
 streamlit.header('Fruityvice Fruit Advice!')
+try:
+    fruit_choice = streamlit.text_input('What fruit would you like more information about?')
+    if not fruit_choice:
+      streamlit.error("Please select a fruit to get information.")
+    else:
+      fruitvice_response = requests.get("https://fruityvice.com/api/fruit/" + fruit_choice)
+      fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
+      streamlit.dataframe(fruityvice_normalized)
+      
+except URLError as e:
+  streamlit.error()
 
-#Adding a text entry box and sending the input to the Fruityvice API
-fruit_choice = streamlit.text_input('What fruit would you like information about?','Kiwi')
-streamlit.write('The user entered ', fruit_choice)
-
-#pulling the data from the API
-fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + "kiwi")
-
-#normalizes the json formatted data and then stores it in variable 
-fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
-
-# Creates a new table for the normalized data to be displayed
-streamlit.dataframe(fruityvice_normalized)
-
+#Pausing code here while doing some more work
+streamlit.stop()
 
 my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
 my_cur = my_cnx.cursor()
